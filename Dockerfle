@@ -1,0 +1,29 @@
+FROM debian:stretch
+MAINTAINER dsavenkov
+
+RUN echo "deb http://mirror.yandex.ru/debian bullseye main" > /etc/apt/sources.list.d/yandex.list && \
+    apt-get update && \
+    apt-get -q -y upgrade && \
+    apt-get -q -y install nginx && \
+    apt-get autoclean && \
+    apt-get install -y procps && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /var/www/* && \
+    mkdir /var/www/firstdocker.com && \
+    mkdir /var/www/firstdocker.com/img
+
+COPY index.html /var/www/firstdocker.com
+COPY img.jpg /var/www/firstdocker.com/img
+
+RUN chown -R 754 /var/www/firstdocker.com && \
+    useradd -ms /bin/bash denis && \
+    groupadd savenkov && \
+    usermod -a -G savenkov denis && \
+    chown -R denis:savenkov /var/www/firstdocker.com && \
+    sed -i 's/html/firstdocker.com/g' /etc/nginx/sites-enabled/default && \
+    sed -i 's/index.firstdocker.com/index.html/g' /etc/nginx/sites-enabled/default && \
+    sed -i 's/www-data/denis/g' /etc/nginx/nginx.conf
+
+EXPOSE 80/tcp
+
+CMD ["nginx", "-g", "daemon off;"]
